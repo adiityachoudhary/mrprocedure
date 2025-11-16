@@ -496,5 +496,5 @@ calcTimeBtn.addEventListener('click', renderETATable);
 
 
 // === Developer Signature ===
-console.log("%c🚀 CBT System © 2025 | Designed & Developed by Aditya Choudhary", "color: indigo; font-weight: bold; font-size: 14px;");
+console.log("%c🚀 CBT System © 2025 | Designed & Developed by Aditya Choudhary", "color: red; font-weight: bold; font-size: 14px;");
 console.log("%c🔗 GitHub: https://github.com/adiityachoudhary", "color: gray; font-size: 12px;");
