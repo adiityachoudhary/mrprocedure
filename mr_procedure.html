@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="shortcut icon" href="src/favicon.ico" type="image/x-icon">
+
+  <title>MR Procedure — CBT Sortie Map</title>
+
+  <!-- Tailwind CDN for quick styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    /**
+     * index.html — Styles
+     * - Clean, focused CSS for JPG map + HTML hotspots
+     * - Labels: red background, bold yellow text
+     * - Dots: visible, enlarge when selected
+     */
+
+    :root{
+      --panel-width: 420px;
+      --muted: #94a3b8;
+      --bg-dark: #071029;
+    }
+
+    html,body{
+      height:100%;
+      margin:0;
+      font-family: Inter, system-ui, Arial;
+      background: linear-gradient(180deg,#061226,var(--bg-dark));
+      color:#e6eef8;
+    }
+
+    .app{
+      display:grid;
+      grid-template-columns: 1fr var(--panel-width);
+      grid-template-rows: 64px 1fr;
+      height:100vh;
+      overflow:hidden;
+    }
+
+    header{
+      grid-column:1/-1;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:12px 18px;
+      background: linear-gradient(90deg, rgba(6,18,38,0.6), rgba(7,16,28,0.5));
+      border-bottom:1px solid rgba(255,255,255,0.03);
+      z-index:60;
+    }
+
+    .map-area{
+      grid-column:1/2;
+      grid-row:2/-1;
+      position:relative;
+      background: linear-gradient(180deg,#76baef,#242841);
+      overflow:hidden;
+      border-radius:30px;
+    }
+
+    .map-container{
+      position:relative;
+      width:100%;
+      height:100%;
+      max-width:1200px;
+      max-height:800px;
+      margin:0 auto;
+    }
+
+    .map-image{
+      width:100%;
+      height:100%;
+      object-fit:contain;
+      display:block;
+      border-radius:20px;
+      user-select:none;
+      -webkit-user-drag:none;
+    }
+
+    .panel-area{
+      grid-column:2/3;
+      grid-row:2/-1;
+      position:relative;
+      background: linear-gradient(180deg,#0b1220,#071029);
+      color:var(--muted);
+      border-left:1px solid rgba(255,255,255,0.03);
+    }
+
+    .panel{
+      position:absolute;
+      inset:0;
+      padding:18px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+
+    .panel-body{ overflow:auto; padding-right:6px; color:#0f172a; background:transparent; }
+
+    .map-controls{
+      position:absolute;
+      left:14px;
+      top:14px;
+      z-index:70;
+      display:flex;
+      gap:8px;
+      pointer-events:auto;
+    }
+
+    .control{
+      background: rgba(2,6,23,0.72);
+      color:#e6eef8;
+      border-radius:10px;
+      padding:8px;
+      display:flex;
+      gap:8px;
+      align-items:center;
+      box-shadow:0 8px 30px rgba(3,7,18,0.55);
+    }
+
+    .control button{
+      background:transparent;
+      border:none;
+      color:inherit;
+      padding:6px 10px;
+      border-radius:8px;
+      font-weight:700;
+      cursor:pointer;
+      transition:transform .12s ease, background .12s ease;
+    }
+
+    .card{
+      background: linear-gradient(180deg,#91f4ff,#fcffd8);
+      border-radius:12px;
+      padding:14px;
+      box-shadow:0 10px 30px rgba(2,6,23,0.12);
+      font-weight:bold;
+    }
+
+    /* HTML hotspots (absolute over JPG) */
+    .hotspot{
+      position:absolute;
+      transform:translate(-50%,-50%);
+      display:flex;
+      align-items:center;
+      gap:8px;
+      cursor:pointer;
+      outline:none;
+      z-index:60;
+      user-select:none;
+    }
+
+    .hotspot .dot{
+      width:20px;
+      height:20px;
+      border-radius:50%;
+      background:#ef4444;
+      box-shadow:0 6px 14px rgba(0,0,0,0.28);
+      transition:transform .18s cubic-bezier(.2,.9,.3,1), width .12s, height .12s, box-shadow .12s;
+      flex:0 0 auto;
+      display:inline-block;
+    }
+
+    .hotspot .label{
+      background:#b91c1c; /* red background */
+      padding:6px 10px;
+      border-radius:6px;
+      font-weight:900;
+      color:#FFD700; /* bold yellow */
+      font-size:16px;
+      white-space:nowrap;
+      transform-origin:left center;
+      transition:transform .18s, font-size .18s, padding .12s;
+      box-shadow:0 4px 12px rgba(0,0,0,0.18);
+    }
+
+    .hotspot.selected .dot{
+      transform:scale(1.4);
+      width:26px;
+      height:26px;
+      box-shadow:0 12px 30px rgba(0,0,0,0.36);
+    }
+
+    .hotspot.selected .label{
+      transform:translateX(6px);
+      font-size:20px;
+      padding:8px 12px;
+    }
+
+    .hotspot.dim{ opacity:0.35; }
+
+    .hotspot:focus{ outline:2px solid rgba(255,255,255,0.06); border-radius:8px; }
+
+    @media (max-width:980px){
+      .app{ grid-template-columns:1fr; grid-template-rows:64px 1fr auto; }
+      .panel-area{ grid-column:1/-1; grid-row:3/-1; height:360px; }
+    }
+
+    .muted{ color:var(--muted); font-size:0.9rem; }
+  </style>
+</head>
+
+<body>
+  <div class="app" id="app">
+    <header>
+      <div class="flex items-center gap-3">
+        <img src="src/navy.png" alt="icon" width="25px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <path d="M3 12h18" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" />
+        </svg>
+        <div style="font-weight:700;">MR Procedure — CBT Sortie Map</div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <label class="muted">Select route</label>
+        <select id="routeSelect" class="rounded-md px-3 py-2 bg-slate-800 text-white"></select>
+      </div>
+    </header>
+
+    <!-- Map area -->
+    <section class="map-area" id="mapArea" aria-label="Map area">
+      <div class="map-controls" role="toolbar" aria-label="Map controls">
+        <div class="control" role="group" aria-label="annotations">
+          <button id="btnTogglePoints" aria-pressed="true" title="Toggle points">Toggle points</button>
+          <button id="btnReset" title="Reset">Reset</button>
+        </div>
+      </div>
+
+      <div class="map-container" id="mapContainer" aria-hidden="false">
+        <img src="src/map.jpg" alt="Map image" class="map-image" draggable="false">
+
+        <div id="hotspots" aria-hidden="false">
+          <!-- hotspot positions are percentages and responsive -->
+          <div class="hotspot" data-id="P" tabindex="0" aria-label="Checkpoint P" style="left:41%; top:98.034%;">
+            <span class="dot" aria-hidden="true"></span>
+            <span class="label">P</span>
+          </div>
+
+          <div class="hotspot" data-id="Q" tabindex="0" aria-label="Checkpoint Q" style="left:64.231%; top:72.966%;">
+            <span class="dot" aria-hidden="true"></span>
+            <span class="label">Q</span>
+          </div>
+
+          <div class="hotspot" data-id="R" tabindex="0" aria-label="Checkpoint R" style="left:33.522%; top:80.966%;">
+            <span class="dot" aria-hidden="true"></span>
+            <span class="label">R</span>
+          </div>
+
+          <div class="hotspot" data-id="S" tabindex="0" aria-label="Checkpoint S" style="left:49.975%; top:72.966%;">
+            <span class="dot" aria-hidden="true"></span>
+            <span class="label">S</span>
+          </div>
+
+          <div class="hotspot" data-id="T" tabindex="0" aria-label="Checkpoint T" style="left:42.412%; top:46.724%;">
+            <span class="dot" aria-hidden="true"></span>
+            <span class="label">T</span>
+          </div>
+
+          <div class="hotspot" data-id="U" tabindex="0" aria-label="Checkpoint U" style="left:31.027%; top:62.690%;">
+            <span class="dot" aria-hidden="true"></span>
+            <span class="label">U</span>
+          </div>
+
+          <div class="hotspot" data-id="S/P" tabindex="0" aria-label="Checkpoint S/P" style="left:52.59%; top:82.5%;">
+            <span class="dot" aria-hidden="true"></span>
+            <span class="label">S/P</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Panel -->
+    <aside class="panel-area" id="panelArea" aria-hidden="false">
+      <div class="panel" id="panel">
+        <div class="flex items-start justify-between">
+          <div>
+            <div id="panelTitle" class="text-lg font-bold text-white">Checkpoint</div>
+            <div id="panelSub" class="muted">Route • Point</div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button id="prevBtn" class="px-3 py-2 rounded-lg bg-yellow-100 hover:bg-sky-500 hover:text-white text-slate-900 font-bold" aria-label="Previous">◀ Prev</button>
+            <button id="nextBtn" class="px-3 py-2 rounded-lg bg-green-200 hover:bg-green-500 hover:text-white text-slate-900 font-bold" aria-label="Next">Next ▶</button>
+          </div>
+        </div>
+
+        <div class="panel-body">
+          <div id="objectiveCard" class="card">
+            <h4 class="text-sm font-semibold" style="margin:0 0 8px;">Objective</h4>
+            <p id="panelObjective" style="margin:0;color:#374151;">—</p>
+          </div>
+
+          <div id="detailsCard" class="card" style="margin-top:12px;">
+            <h4 class="text-sm font-semibold" style="margin:0 0 8px;">Details</h4>
+            <ul id="panelBullets" style="margin:0 0 0 18px;color:#374151;"></ul>
+          </div>
+
+          <!-- Time/ETA Card -->
+          <div id="timeCard" class="card" style="margin-top:12px;">
+            <h4 class="text-sm font-semibold" style="margin:0 0 8px;">ETA Calculation (times shown in hours)</h4>
+
+            <div class="mb-2">
+              <label class="block mb-1 text-slate-700 font-semibold">Start Point</label>
+              <select id="startPointSelect" class="px-3 py-2 border rounded-md w-full mb-3 bg-white/80 text-slate-900"></select>
+            </div>
+
+            <div>
+              <label class="block mb-2 text-slate-700 font-semibold">Starting Time (HH:MM)</label>
+              <input id="startTimeInput" type="time"
+                     class="px-3 py-2 border rounded-md w-full mb-3" />
+            </div>
+
+            <button id="calcTimeBtn"
+                    class="px-3 py-2 rounded-lg bg-blue-300 hover:bg-blue-500 hover:text-white font-bold w-full mb-3">
+              Calculate ETA
+            </button>
+
+            <div class="overflow-auto max-h-48">
+              <table id="etaTable" class="w-full text-sm font-semibold text-slate-800">
+                <thead>
+                  <tr class="border-b">
+                    <th class="py-1 text-left">Leg #</th>
+                    <th class="py-1 text-left">From</th>
+                    <th class="py-1 text-left">To</th>
+                    <th class="py-1 text-left">Time (hrs)</th>
+                    <th class="py-1 text-left">ETA</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+
+            <div id="etaSummary" class="mt-3 text-slate-800 font-semibold">
+              <!-- totals will be inserted here -->
+            </div>
+          </div>
+          <!-- END Time/ETA Card -->
+
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script src="mr_procedure.js"></script>
+</body>
+</html>
