@@ -2,14 +2,11 @@
  * File: mr_procedure.js
  * Description: Interactive logic for MR Procedure map using JPG + HTML hotspots.
  * Author: Aditya
- * Created: 13-Nov-2025
- * Last Modified: 14-Nov-2025
- *
- * Features:
- * - Route selection and panel rendering
- * - Hotspot highlighting and keyboard support
- * - ETA/time table calculation based on a configurable time matrix
- * - Leg times displayed in hours, plus total time and final ETA
+ * Created: 12-Nov-2025
+ * Last Modified: 25-Nov-2025
+ * Version: 1.0.0
+ * License: MIT
+ * Signature: © 2025 Aditya Choudhary | All Rights Reserved
  */
 
 /* ===========================
@@ -495,3 +492,9 @@ calcTimeBtn.addEventListener('click', renderETATable);
   document.documentElement.style.overflow = 'hidden';
   document.body.style.overflow = 'hidden';
 })();
+
+
+
+// === Developer Signature ===
+console.log("%c🚀 CBT System © 2025 | Designed & Developed by Aditya Choudhary", "color: indigo; font-weight: bold; font-size: 14px;");
+console.log("%c🔗 GitHub: https://github.com/adiityachoudhary", "color: gray; font-size: 12px;");

@@ -1,45 +1,202 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Sortie Map — Interactive Points + 80% Popup</title>
+  <link rel="icon" href="src/favicon.ico" type="image/x-icon">
+
+
+  <!-- ======= META SIGNATURE ======= -->
+  <meta name="author" content="Aditya">
+  <meta name="description"
+    content="Computer-Based Training System developed by Aditya Choudhary(Computer Science Graduate | Developer | Scholar)">
+  <meta name="keywords"
+    content="CBT, Computer Science, Aditya Choudhary, Web Development, JavaScript, Tailwind, Education, GitHub">
+  <meta name="github" content="https://github.com/adiityachoudhary">
+
+
+  <title>CBT-MR Procedure</title>
   <style>
     /* ---- Layout ---- */
-    :root{--accent:#d8d600;--bg:#071e2b}
-    html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial}
-    .container{position:relative;max-width:1100px;margin:18px auto;border-radius:8px;overflow:hidden;box-shadow:0 8px 30px rgba(2,10,18,0.45)}
-    img.map{width:100%;height:auto;display:block;user-select:none}
+    :root {
+      --accent: #d8d600;
+      --bg: #071e2b
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      font-family: Inter, system-ui, Segoe UI, Roboto, Arial
+    }
+
+    .container {
+      position: relative;
+      max-width: 1100px;
+      margin: 18px auto;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 8px 30px rgba(2, 10, 18, 0.45)
+    }
+
+    img.map {
+      width: 100%;
+      height: auto;
+      display: block;
+      user-select: none
+    }
 
     /* Overlay layer where markers live (keeps positions responsive) */
-    .overlay{position:absolute;inset:0;pointer-events:none}
-    .marker{position:absolute;width:26px;height:26px;border-radius:6px;background:var(--accent);color:#111;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 8px rgba(0,0,0,.25);transform:translate(-50%,-50%);cursor:pointer;pointer-events:auto;border:2px solid #111}
-    .marker:hover{transform:translate(-50%,-50%) scale(1.12)}
-    .marker .hint{position:absolute;top:-30px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.8);color:#fff;padding:4px 8px;border-radius:4px;font-size:12px;white-space:nowrap;display:none}
-    .marker:focus{outline:3px solid rgba(0,0,0,.12)}
+    .overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none
+    }
+
+    .marker {
+      position: absolute;
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      background: var(--accent);
+      color: #111;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, .25);
+      transform: translate(-50%, -50%);
+      cursor: pointer;
+      pointer-events: auto;
+      border: 2px solid #111
+    }
+
+    .marker:hover {
+      transform: translate(-50%, -50%) scale(1.12)
+    }
+
+    .marker .hint {
+      position: absolute;
+      top: -30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, .8);
+      color: #fff;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      white-space: nowrap;
+      display: none
+    }
+
+    .marker:focus {
+      outline: 3px solid rgba(0, 0, 0, .12)
+    }
 
     /* ---- Modal/backdrop ---- */
-    .backdrop{position:fixed;inset:0;background:rgba(2,8,10,0.55);display:none;align-items:center;justify-content:center;z-index:600}
-    .backdrop.show{display:flex}
+    .backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 8, 10, 0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 600
+    }
+
+    .backdrop.show {
+      display: flex
+    }
 
     /* the popup that covers ~80% of the viewport centered */
-    .popup{width:80vw;max-width:1200px;height:80vh;background:#fff;border-radius:10px;box-shadow:0 20px 60px rgba(3,12,18,.6);overflow:auto;transform:scale(0.9);opacity:0;transition:transform 360ms cubic-bezier(.2,.9,.3,1),opacity 360ms cubic-bezier(.2,.9,.3,1);will-change:transform,opacity}
-    .popup.show{transform:scale(1);opacity:1}
+    .popup {
+      width: 80vw;
+      max-width: 1200px;
+      height: 80vh;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 20px 60px rgba(3, 12, 18, .6);
+      overflow: auto;
+      transform: scale(0.9);
+      opacity: 0;
+      transition: transform 360ms cubic-bezier(.2, .9, .3, 1), opacity 360ms cubic-bezier(.2, .9, .3, 1);
+      will-change: transform, opacity
+    }
+
+    .popup.show {
+      transform: scale(1);
+      opacity: 1
+    }
 
     /* header inside popup */
-    .popup-header{position:sticky;top:0;background:linear-gradient(90deg,#061e29,#0a2a36);color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;border-top-left-radius:10px;border-top-right-radius:10px}
-    .title{font-weight:700}
-    .close-btn{background:transparent;border:0;color:#fff;font-size:20px;padding:8px 12px;border-radius:6px;cursor:pointer}
-    .close-btn:hover{background:rgba(255,255,255,.06)}
+    .popup-header {
+      position: sticky;
+      top: 0;
+      background: linear-gradient(90deg, #061e29, #0a2a36);
+      color: #fff;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px
+    }
 
-    .popup-body{padding:18px 20px;color:#122;line-height:1.45}
-    .meta{font-size:13px;color:#334;opacity:.8;margin-bottom:8px}
-    .big{font-size:90%;background:#f7f7f7;padding:12px;border-radius:6px;border:1px solid #eee}
+    .title {
+      font-weight: 700
+    }
+
+    .close-btn {
+      background: transparent;
+      border: 0;
+      color: #fff;
+      font-size: 20px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer
+    }
+
+    .close-btn:hover {
+      background: rgba(255, 255, 255, .06)
+    }
+
+    .popup-body {
+      padding: 18px 20px;
+      color: #122;
+      line-height: 1.45
+    }
+
+    .meta {
+      font-size: 13px;
+      color: #334;
+      opacity: .8;
+      margin-bottom: 8px
+    }
+
+    .big {
+      font-size: 90%;
+      background: #f7f7f7;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid #eee
+    }
 
     /* small responsive tweaks */
-    @media (max-width:680px){.popup{width:92vw;height:86vh}.marker{width:22px;height:22px}}
+    @media (max-width:680px) {
+      .popup {
+        width: 92vw;
+        height: 86vh
+      }
+
+      .marker {
+        width: 22px;
+        height: 22px
+      }
+    }
   </style>
 </head>
+
 <body>
 
   <div class="container" id="mapWrap">
@@ -60,7 +217,8 @@
         <button class="close-btn" id="popupClose" aria-label="Close popup">✕</button>
       </div>
       <div class="popup-body" id="popupBody">
-        <p class="big">Point detail content will show here. Use the points[] array in the script to set content for each marker. This area can hold protocols, next-point directives, and images.</p>
+        <p class="big">Point detail content will show here. Use the points[] array in the script to set content for each
+          marker. This area can hold protocols, next-point directives, and images.</p>
       </div>
     </div>
   </div>
@@ -71,7 +229,8 @@
       Format: { id, x (left%), y (top%), label, title, sub, content }
     */
     const points = [
-      /* 1*/ {id:'P01', x:60.83, y:33.54, label:'1', title:'Point 1', sub:'', content:`<h3>VOCC Entry</h3>
+      /* 1*/ {
+        id: 'P01', x: 60.83, y: 33.54, label: '1', title: 'Point 1', sub: '', content: `<h3>VOCC Entry</h3>
          <img src="https://picsum.photos/500/200/?blur=2" alt="VOCC entry photo">
          <ul>
            <li>Contact ATC on frequency 118.7</li>
@@ -79,23 +238,23 @@
            <li>Climb to holding pattern if required</li>
          </ul>
          <div class="small-meta">Next: Q — estimated 14 min</div>`},
-      /* 2*/ {id:'P02', x:61.48, y:38.86, label:'2', title:'Point 2', sub:'', content:'Details for point 2.'},
-      /* 3*/ {id:'P03', x:62.78, y:45.17, label:'3', title:'Point 3', sub:'', content:'Details for point 3.'},
-      /* 4*/ {id:'P04', x:61.57, y:49.13, label:'4', title:'Point 4', sub:'', content:'Details for point 4.'},
-      /* 5*/ {id:'P05', x:66.76, y:44.18, label:'5', title:'Point 5', sub:'', content:'Details for point 5.'},
-      /* 6*/ {id:'P06', x:66.76, y:67.70, label:'6', title:'Point 6', sub:'', content:'Details for point 6.'},
-      /* 7*/ {id:'P07', x:72.87, y:67.66, label:'7', title:'Point 7', sub:'', content:'Details for point 7.'},
-      /* 8*/ {id:'P08', x:62.59, y:71.41, label:'8', title:'Point 8', sub:'', content:'Details for point 8.'},
-      /* 9*/ {id:'P09', x:56.30, y:76.24, label:'9', title:'Point 9', sub:'', content:'Details for point 9.'},
-      /*10*/ {id:'P10', x:52.78, y:78.71, label:'10', title:'Point 10', sub:'', content:'Details for point 10.'},
-      /*11*/ {id:'P11', x:46.76, y:85.27, label:'11', title:'Point 11', sub:'', content:'Details for point 11.'},
-      /*12*/ {id:'P12', x:38.80, y:93.32, label:'12', title:'Point 12', sub:'', content:'Details for point 12.'},
-      /*13*/ {id:'P13', x:29.35, y:66.58, label:'13', title:'Point 13', sub:'', content:'Details for point 13.'},
-      /*14*/ {id:'P14', x:35.19, y:63.13, label:'14', title:'Point 14', sub:'', content:'Details for point 14.'},
-      /*15*/ {id:'P15', x:48.15, y:52.10, label:'15', title:'Point 15', sub:'', content:'Details for point 15.'},
-      /*16*/ {id:'P16', x:55.74, y:46.53, label:'16', title:'Point 16', sub:'', content:'Details for point 16.'},
-      /*17*/ {id:'P17', x:60.83, y:42.82, label:'17', title:'Point 17', sub:'', content:'Details for point 17.'},
-    //   /*18*/ {id:'P18', x:60.93, y:33.54, label:'18', title:'Point 18', sub:'', content:'Details for point 18.'}
+      /* 2*/ { id: 'P02', x: 61.48, y: 38.86, label: '2', title: 'Point 2', sub: '', content: 'Details for point 2.' },
+      /* 3*/ { id: 'P03', x: 62.78, y: 45.17, label: '3', title: 'Point 3', sub: '', content: 'Details for point 3.' },
+      /* 4*/ { id: 'P04', x: 61.57, y: 49.13, label: '4', title: 'Point 4', sub: '', content: 'Details for point 4.' },
+      /* 5*/ { id: 'P05', x: 66.76, y: 44.18, label: '5', title: 'Point 5', sub: '', content: 'Details for point 5.' },
+      /* 6*/ { id: 'P06', x: 66.76, y: 67.70, label: '6', title: 'Point 6', sub: '', content: 'Details for point 6.' },
+      /* 7*/ { id: 'P07', x: 72.87, y: 67.66, label: '7', title: 'Point 7', sub: '', content: 'Details for point 7.' },
+      /* 8*/ { id: 'P08', x: 62.59, y: 71.41, label: '8', title: 'Point 8', sub: '', content: 'Details for point 8.' },
+      /* 9*/ { id: 'P09', x: 56.30, y: 76.24, label: '9', title: 'Point 9', sub: '', content: 'Details for point 9.' },
+      /*10*/ { id: 'P10', x: 52.78, y: 78.71, label: '10', title: 'Point 10', sub: '', content: 'Details for point 10.' },
+      /*11*/ { id: 'P11', x: 46.76, y: 85.27, label: '11', title: 'Point 11', sub: '', content: 'Details for point 11.' },
+      /*12*/ { id: 'P12', x: 38.80, y: 93.32, label: '12', title: 'Point 12', sub: '', content: 'Details for point 12.' },
+      /*13*/ { id: 'P13', x: 29.35, y: 66.58, label: '13', title: 'Point 13', sub: '', content: 'Details for point 13.' },
+      /*14*/ { id: 'P14', x: 35.19, y: 63.13, label: '14', title: 'Point 14', sub: '', content: 'Details for point 14.' },
+      /*15*/ { id: 'P15', x: 48.15, y: 52.10, label: '15', title: 'Point 15', sub: '', content: 'Details for point 15.' },
+      /*16*/ { id: 'P16', x: 55.74, y: 46.53, label: '16', title: 'Point 16', sub: '', content: 'Details for point 16.' },
+      /*17*/ { id: 'P17', x: 60.83, y: 42.82, label: '17', title: 'Point 17', sub: '', content: 'Details for point 17.' },
+      //   /*18*/ {id:'P18', x:60.93, y:33.54, label:'18', title:'Point 18', sub:'', content:'Details for point 18.'}
     ];
 
     const overlay = document.getElementById('overlay');
@@ -120,47 +279,47 @@
       m.style.top = pt.y + '%';
 
       // small label inside marker
-      m.innerHTML = '<span>'+pt.label+'</span>';
+      m.innerHTML = '<span>' + pt.label + '</span>';
 
       // accessible keyboard activation
       m.addEventListener('click', () => showPopup(pt));
-      m.addEventListener('keydown', (e) => { if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showPopup(pt);} });
+      m.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showPopup(pt); } });
 
       overlay.appendChild(m);
     });
 
-    function showPopup(point){
+    function showPopup(point) {
       popupTitle.textContent = point.title || point.id;
       popupSub.textContent = (point.sub || '') + ` — Coords: ${point.x.toFixed(2)}%, ${point.y.toFixed(2)}%`;
       popupBody.innerHTML = `<div class="big">${point.content || 'No details provided.'}</div>`;
 
       backdrop.classList.add('show');
       // force reflow then add show for smooth scale transition
-      requestAnimationFrame(()=> popup.classList.add('show'));
-      backdrop.setAttribute('aria-hidden','false');
+      requestAnimationFrame(() => popup.classList.add('show'));
+      backdrop.setAttribute('aria-hidden', 'false');
 
       // trap focus inside popup for accessibility
-      setTimeout(()=> popupClose.focus(),300);
+      setTimeout(() => popupClose.focus(), 300);
     }
 
-    function closePopup(){
+    function closePopup() {
       popup.classList.remove('show');
       backdrop.classList.remove('show');
-      backdrop.setAttribute('aria-hidden','true');
+      backdrop.setAttribute('aria-hidden', 'true');
     }
 
     popupClose.addEventListener('click', closePopup);
 
     // clicking backdrop outside popup closes it
-    backdrop.addEventListener('click', (e)=>{ if(e.target === backdrop) closePopup(); });
+    backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closePopup(); });
 
     // ESC key to close
-    document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && backdrop.classList.contains('show')) closePopup(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && backdrop.classList.contains('show')) closePopup(); });
 
-    // Notes:
-    // - If you want the overlay to be excluded from pointer events when not using markers, overlay already has pointer-events:none;
-    //   markers themselves have pointer-events:auto so they remain interactive.
-    // - To change content for each point, update the `content` property in the points[] array (HTML allowed).
+    // === Developer Signature ===
+    console.log("%c🚀 CBT System © 2025 | Designed & Developed by Aditya Choudhary", "color: indigo; font-weight: bold; font-size: 14px;");
+    console.log("%c🔗 GitHub: https://github.com/adiityachoudhary", "color: gray; font-size: 12px;");
   </script>
 </body>
+
 </html>
