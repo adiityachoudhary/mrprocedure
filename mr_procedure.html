@@ -1,348 +1,504 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="icon" href="src/favicon.ico" type="image/x-icon">
 
-  <title>MR Procedure — CBT Sortie Map</title>
 
-  <!-- Tailwind CDN for quick styling -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- ======= META SIGNATURE ======= -->
+  <meta name="author" content="Aditya">
+  <meta name="description"
+    content="Computer-Based Training System developed by Aditya Choudhary(Computer Science Graduate | Developer | Scholar)">
+  <meta name="keywords"
+    content="CBT, Computer Science, Aditya Choudhary, Web Development, JavaScript, Tailwind, Education, GitHub">
+  <meta name="github" content="https://github.com/adiityachoudhary">
 
+
+  <title>CBT-MR Procedure</title>
   <style>
-    /**
-     * index.html — Styles
-     * - Clean, focused CSS for JPG map + HTML hotspots
-     * - Labels: red background, bold yellow text
-     * - Dots: visible, enlarge when selected
-     */
-
-    :root{
-      --panel-width: 420px;
-      --muted: #94a3b8;
-      --bg-dark: #071029;
+    /* ---- Layout ---- */
+    :root {
+      --accent: #d8d600;
+      --bg: #071e2b
     }
 
-    html,body{
-      height:100%;
-      margin:0;
-      font-family: Inter, system-ui, Arial;
-      background: linear-gradient(180deg,#061226,var(--bg-dark));
-      color:#e6eef8;
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      font-family: Inter, system-ui, Segoe UI, Roboto, Arial;
+      background-color: rgb(182, 244, 255);
     }
 
-    .app{
-      display:grid;
-      grid-template-columns: 1fr var(--panel-width);
-      grid-template-rows: 64px 1fr;
-      height:100vh;
-      overflow:hidden;
+    .container {
+      position: relative;
+      max-width: 1100px;
+      margin: 18px auto;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 8px 30px rgba(2, 10, 18, 0.45)
     }
 
-    header{
-      grid-column:1/-1;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      padding:12px 18px;
-      background: linear-gradient(90deg, rgba(6,18,38,0.6), rgba(7,16,28,0.5));
-      border-bottom:1px solid rgba(255,255,255,0.03);
-      z-index:60;
+    img.map {
+      width: 100%;
+      height: auto;
+      display: block;
+      user-select: none
     }
 
-    .map-area{
-      grid-column:1/2;
-      grid-row:2/-1;
-      position:relative;
-      background: linear-gradient(180deg,#76baef,#242841);
-      overflow:hidden;
-      border-radius:30px;
+    /* Overlay layer where markers live (keeps positions responsive) */
+    .overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none
     }
 
-    .map-container{
-      position:relative;
-      width:100%;
-      height:100%;
-      max-width:1200px;
-      max-height:800px;
-      margin:0 auto;
+    .marker {
+      position: absolute;
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      background: var(--accent);
+      color: #111;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, .25);
+      transform: translate(-50%, -50%);
+      cursor: pointer;
+      pointer-events: auto;
+      border: 2px solid #111
     }
 
-    .map-image{
-      width:100%;
-      height:100%;
-      object-fit:contain;
-      display:block;
-      border-radius:20px;
-      user-select:none;
-      -webkit-user-drag:none;
+    .marker:hover {
+      transform: translate(-50%, -50%) scale(1.12)
     }
 
-    .panel-area{
-      grid-column:2/3;
-      grid-row:2/-1;
-      position:relative;
-      background: linear-gradient(180deg,#0b1220,#071029);
-      color:var(--muted);
-      border-left:1px solid rgba(255,255,255,0.03);
+    .marker .hint {
+      position: absolute;
+      top: -30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, .8);
+      color: #a93535;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      white-space: nowrap;
+      display: none
     }
 
-    .panel{
-      position:absolute;
-      inset:0;
-      padding:18px;
-      display:flex;
-      flex-direction:column;
-      gap:12px;
+    .marker:focus {
+      outline: 3px solid rgba(0, 0, 0, .12)
     }
 
-    .panel-body{ overflow:auto; padding-right:6px; color:#0f172a; background:transparent; }
-
-    .map-controls{
-      position:absolute;
-      left:14px;
-      top:14px;
-      z-index:70;
-      display:flex;
-      gap:8px;
-      pointer-events:auto;
+    /* ---- Modal/backdrop ---- */
+    .backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 8, 10, 0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 600
     }
 
-    .control{
-      background: rgba(2,6,23,0.72);
-      color:#e6eef8;
-      border-radius:10px;
-      padding:8px;
-      display:flex;
-      gap:8px;
-      align-items:center;
-      box-shadow:0 8px 30px rgba(3,7,18,0.55);
+    .backdrop.show {
+      display: flex
     }
 
-    .control button{
-      background:transparent;
-      border:none;
-      color:inherit;
-      padding:6px 10px;
-      border-radius:8px;
-      font-weight:700;
-      cursor:pointer;
-      transition:transform .12s ease, background .12s ease;
+    /* the popup that covers ~80% of the viewport centered */
+    .popup {
+      width: 80vw;
+      max-width: 1200px;
+      height: 80vh;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 20px 60px rgba(3, 12, 18, .6);
+      overflow: auto;
+      transform: scale(0.9);
+      opacity: 0;
+      transition: transform 360ms cubic-bezier(.2, .9, .3, 1), opacity 360ms cubic-bezier(.2, .9, .3, 1);
+      will-change: transform, opacity
     }
 
-    .card{
-      background: linear-gradient(180deg,#91f4ff,#fcffd8);
-      border-radius:12px;
-      padding:14px;
-      box-shadow:0 10px 30px rgba(2,6,23,0.12);
-      font-weight:bold;
+    .popup.show {
+      transform: scale(1);
+      opacity: 1
     }
 
-    /* HTML hotspots (absolute over JPG) */
-    .hotspot{
-      position:absolute;
-      transform:translate(-50%,-50%);
-      display:flex;
-      align-items:center;
-      gap:8px;
-      cursor:pointer;
-      outline:none;
-      z-index:60;
-      user-select:none;
+    /* header inside popup */
+    .popup-header {
+      position: sticky;
+      top: 0;
+      background: linear-gradient(90deg, #061e29, #0a2a36);
+      color: #fff;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px
     }
 
-    .hotspot .dot{
-      width:20px;
-      height:20px;
-      border-radius:50%;
-      background:#ef4444;
-      box-shadow:0 6px 14px rgba(0,0,0,0.28);
-      transition:transform .18s cubic-bezier(.2,.9,.3,1), width .12s, height .12s, box-shadow .12s;
-      flex:0 0 auto;
-      display:inline-block;
+    .title {
+      font-weight: 700
     }
 
-    .hotspot .label{
-      background:#b91c1c; /* red background */
-      padding:6px 10px;
-      border-radius:6px;
-      font-weight:900;
-      color:#FFD700; /* bold yellow */
-      font-size:16px;
-      white-space:nowrap;
-      transform-origin:left center;
-      transition:transform .18s, font-size .18s, padding .12s;
-      box-shadow:0 4px 12px rgba(0,0,0,0.18);
+    .close-btn {
+      background: transparent;
+      border: 0;
+      color: #fff;
+      font-size: 20px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer
     }
 
-    .hotspot.selected .dot{
-      transform:scale(1.4);
-      width:26px;
-      height:26px;
-      box-shadow:0 12px 30px rgba(0,0,0,0.36);
+    .close-btn:hover {
+      background: rgba(255, 255, 255, .06)
     }
 
-    .hotspot.selected .label{
-      transform:translateX(6px);
-      font-size:20px;
-      padding:8px 12px;
+    .popup-body {
+      padding: 18px 20px;
+      color: #122;
+      line-height: 1.45
     }
 
-    .hotspot.dim{ opacity:0.35; }
-
-    .hotspot:focus{ outline:2px solid rgba(255,255,255,0.06); border-radius:8px; }
-
-    @media (max-width:980px){
-      .app{ grid-template-columns:1fr; grid-template-rows:64px 1fr auto; }
-      .panel-area{ grid-column:1/-1; grid-row:3/-1; height:360px; }
+    .meta {
+      font-size: 13px;
+      color: #334;
+      opacity: .8;
+      margin-bottom: 8px
     }
 
-    .muted{ color:var(--muted); font-size:0.9rem; }
+    .big {
+      font-size: 90%;
+      background: #f7f7f7;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid #eee
+    }
+
+    /* small responsive tweaks */
+    @media (max-width:680px) {
+      .popup {
+        width: 92vw;
+        height: 86vh
+      }
+
+      .marker {
+        width: 22px;
+        height: 22px
+      }
+    }
   </style>
 </head>
 
 <body>
-  <div class="app" id="app">
-    <header>
-      <div class="flex items-center gap-3">
-        <img src="src/navy.png" alt="icon" width="25px">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-          <path d="M3 12h18" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" />
-        </svg>
-        <div style="font-weight:700;">MR Procedure — CBT Sortie Map</div>
-      </div>
 
-      <div class="flex items-center gap-3">
-        <label class="muted">Select route</label>
-        <select id="routeSelect" class="rounded-md px-3 py-2 bg-slate-800 text-white"></select>
-      </div>
-    </header>
+  <div class="container" id="mapWrap">
+    <!-- Replace 'src/map.jpg' with your file name or path. Keep the overlay and markers percentages. -->
+    <img class="map" src="src/map.jpg" alt="Sortie map" />
 
-    <!-- Map area -->
-    <section class="map-area" id="mapArea" aria-label="Map area">
-      <div class="map-controls" role="toolbar" aria-label="Map controls">
-        <div class="control" role="group" aria-label="annotations">
-          <button id="btnTogglePoints" aria-pressed="true" title="Toggle points">Toggle points</button>
-          <button id="btnReset" title="Reset">Reset</button>
-        </div>
-      </div>
-
-      <div class="map-container" id="mapContainer" aria-hidden="false">
-        <img src="src/map.jpg" alt="Map image" class="map-image" draggable="false">
-
-        <div id="hotspots" aria-hidden="false">
-          <!-- hotspot positions are percentages and responsive -->
-          <div class="hotspot" data-id="P" tabindex="0" aria-label="Checkpoint P" style="left:41%; top:98.034%;">
-            <span class="dot" aria-hidden="true"></span>
-            <span class="label">P</span>
-          </div>
-
-          <div class="hotspot" data-id="Q" tabindex="0" aria-label="Checkpoint Q" style="left:64.231%; top:72.966%;">
-            <span class="dot" aria-hidden="true"></span>
-            <span class="label">Q</span>
-          </div>
-
-          <div class="hotspot" data-id="R" tabindex="0" aria-label="Checkpoint R" style="left:33.522%; top:80.966%;">
-            <span class="dot" aria-hidden="true"></span>
-            <span class="label">R</span>
-          </div>
-
-          <div class="hotspot" data-id="S" tabindex="0" aria-label="Checkpoint S" style="left:49.975%; top:72.966%;">
-            <span class="dot" aria-hidden="true"></span>
-            <span class="label">S</span>
-          </div>
-
-          <div class="hotspot" data-id="T" tabindex="0" aria-label="Checkpoint T" style="left:42.412%; top:46.724%;">
-            <span class="dot" aria-hidden="true"></span>
-            <span class="label">T</span>
-          </div>
-
-          <div class="hotspot" data-id="U" tabindex="0" aria-label="Checkpoint U" style="left:31.027%; top:62.690%;">
-            <span class="dot" aria-hidden="true"></span>
-            <span class="label">U</span>
-          </div>
-
-          <div class="hotspot" data-id="S/P" tabindex="0" aria-label="Checkpoint S/P" style="left:52.59%; top:82.5%;">
-            <span class="dot" aria-hidden="true"></span>
-            <span class="label">S/P</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Panel -->
-    <aside class="panel-area" id="panelArea" aria-hidden="false">
-      <div class="panel" id="panel">
-        <div class="flex items-start justify-between">
-          <div>
-            <div id="panelTitle" class="text-lg font-bold text-white">Checkpoint</div>
-            <div id="panelSub" class="muted">Route • Point</div>
-          </div>
-
-          <div class="flex items-center gap-2">
-            <button id="prevBtn" class="px-3 py-2 rounded-lg bg-yellow-100 hover:bg-sky-500 hover:text-white text-slate-900 font-bold" aria-label="Previous">◀ Prev</button>
-            <button id="nextBtn" class="px-3 py-2 rounded-lg bg-green-200 hover:bg-green-500 hover:text-white text-slate-900 font-bold" aria-label="Next">Next ▶</button>
-          </div>
-        </div>
-
-        <div class="panel-body">
-          <div id="objectiveCard" class="card">
-            <h4 class="text-sm font-semibold" style="margin:0 0 8px;">Objective</h4>
-            <p id="panelObjective" style="margin:0;color:#374151;">—</p>
-          </div>
-
-          <div id="detailsCard" class="card" style="margin-top:12px;">
-            <h4 class="text-sm font-semibold" style="margin:0 0 8px;">Details</h4>
-            <ul id="panelBullets" style="margin:0 0 0 18px;color:#374151;"></ul>
-          </div>
-
-          <!-- Time/ETA Card -->
-          <div id="timeCard" class="card" style="margin-top:12px;">
-            <h4 class="text-sm font-semibold" style="margin:0 0 8px;">ETA Calculation (times shown in hours)</h4>
-
-            <div class="mb-2">
-              <label class="block mb-1 text-slate-700 font-semibold">Start Point</label>
-              <select id="startPointSelect" class="px-3 py-2 border rounded-md w-full mb-3 bg-white/80 text-slate-900"></select>
-            </div>
-
-            <div>
-              <label class="block mb-2 text-slate-700 font-semibold">Starting Time (HH:MM)</label>
-              <input id="startTimeInput" type="time"
-                     class="px-3 py-2 border rounded-md w-full mb-3" />
-            </div>
-
-            <button id="calcTimeBtn"
-                    class="px-3 py-2 rounded-lg bg-blue-300 hover:bg-blue-500 hover:text-white font-bold w-full mb-3">
-              Calculate ETA
-            </button>
-
-            <div class="overflow-auto max-h-48">
-              <table id="etaTable" class="w-full text-sm font-semibold text-slate-800">
-                <thead>
-                  <tr class="border-b">
-                    <th class="py-1 text-left">Leg #</th>
-                    <th class="py-1 text-left">From</th>
-                    <th class="py-1 text-left">To</th>
-                    <th class="py-1 text-left">Time (hrs)</th>
-                    <th class="py-1 text-left">ETA</th>
-                  </tr>
-                </thead>
-                <tbody></tbody>
-              </table>
-            </div>
-
-            <div id="etaSummary" class="mt-3 text-slate-800 font-semibold">
-              <!-- totals will be inserted here -->
-            </div>
-          </div>
-          <!-- END Time/ETA Card -->
-
-        </div>
-      </div>
-    </aside>
+    <div class="overlay" id="overlay" aria-hidden="false"></div>
   </div>
 
-  <script src="mr_procedure.js"></script>
+  <!-- Backdrop + popup (hidden until marker clicked) -->
+  <div class="backdrop" id="backdrop" aria-hidden="true">
+    <div class="popup" role="dialog" aria-modal="true" aria-labelledby="popupTitle" id="popup">
+      <div class="popup-header">
+        <div>
+          <div id="popupTitle" class="title">Point Title</div>
+          <div id="popupSub" class="meta">Coords: 0%, 0% — ETA: —</div>
+        </div>
+        <button class="close-btn" id="popupClose" aria-label="Close popup">✕</button>
+      </div>
+      <div class="popup-body" id="popupBody">
+        <p class="big">Point detail content will show here. Use the points[] array in the script to set content for each
+          marker. This area can hold protocols, next-point directives, and images.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /*
+      FIXED points[]: converted from your original 1080×808 px coordinates into percentages.
+      Format: { id, x (left%), y (top%), label, title, sub, content }
+    */
+    const points = [
+      /* 1*/ {
+        id: 'P01', x: 60.83, y: 33.54, label: '1', title: 'Point 1', sub: '',
+        content: `<ul style="font-family:Arial; font-size:25px; line-height:1.5;">
+  <li><strong>START UP WITH GARUDA TOWER ON FREQUENCY 127.9 MHz</strong></li>
+  <li><strong>COMCHECK AND AUTHENTICATION WITH MOC ON GROUND</strong></li>
+  <li><strong>(MOC CALLSIGN) DE (OWN CALLSIGN) REQUEST AUTHENTICATION FOR (TIME IN IST)</strong></li>
+  <li><strong>MOC PROVIDES AUTHENTICATION</strong></li>
+  <li><strong>AUTHENTICATION CORRECT / INCORRECT</strong></li>
+  <li><strong>REPEAT PROCESS IF AUTHENTICATION IS INCORRECT</strong></li>
+</ul>
+
+`},
+      /* 2*/ {
+        id: 'P02', x: 61.48, y: 38.86, label: '2', title: 'Point 2', sub: '', content: `
+    <ul style="font-family:Arial; font-size:25px; line-height:1.5;">
+  <li><strong>S/H ACTIVITY (MFALC)</strong></li>
+
+  <li><strong>HF MESSAGE TO FIC </strong></li>
+<ul type="square" style="font-family:Arial; line-height:1;">
+  <li>CHN RDIO X2 ( OWN CALLSIGN ) ON 8861/6655 DEPARTURE (.) A/B KOCHI GARUDA ( TIME IN UTC  ) FOR EX AREA AND BACK VIA FPR (.) MNTNG (ALTITUDE IN FEET) FT ASML (.) ESTIMATING PT ‘Q’ ( TIME IN UTC  ) ENT EX AREA ( TIME IN UTC  ) EXIT EX AREA ( TIME IN UTC  ) AND ARRIVAL BACK TO KOCHI ( TIME IN UTC  ) GARUDA ENDURANCE ON DEP ( ENDURANCE IN HOURS AND MINUTES ) (.) POB ( NUMBER OF PEOPLE ON BOARD ) (.) SELCAL (SELCAL) (.) ( OWN CALLSIGN) (.)</li></ul>
+<br>
+  <li><strong>A/B CALL TO MOC</strong></li>
+  <ul type="square" style="font-family:Arial; line-height:1;">
+  <li>( MOC CALLSIGN ) DE ( OWN CALLSIGN ) (.) A/B KOCHI ( TIME IN IST ) MTG STRATA (ALTITUDE IN THOUSANDS OF FT) ESTIMATE X COAST ( TIME IN IST ) ON TASK ( TIME IN IST) OFF TASK ( TIME IN IST )  ETA BASE ( TIME IN IST ) ENDURANCE ON DEPARTURE ( ENDURANCE IN HOURS AND MINUTES ) POB ( NUMBER OF PEOPLE ON BOARD ) ( MOC CALLSIGN ) DE ( OWN CALLSIGN ) (.)</li></ul>
+</ul>
+
+`
+      },
+      /* 3*/ {
+        id: 'P03', x: 62.78, y: 45.17, label: '3', title: 'Point 3', sub: '', content: `<ul style="font-family:Arial; font-size:25px; line-height:1.5;">
+
+  <li><strong>TOC ACTIVITY</strong></li>
+   <ul type="square" style="font-family:Arial; line-height:1;">
+  <li>LEVEL OUT AND INCREASE SPEED TO 165</li>
+   <li>CCN RDL DME</li>
+    <li>FUEL AND SAFETY CHECKS</li>
+     <li>UPDATE ETAS AND AN CARD</li>
+  </ul>
+  
+</ul>
+
+`
+      },
+      /* 4*/ {
+        id: 'P04', x: 61.57, y: 49.13, label: '4', title: 'Point 4', sub: '', content: `<ul style="font-family:Arial; font-size:25px; line-height:1.5;">
+
+  <li><strong> OBSTRUCTION *COPY DETAILS FROM IMAGE</strong></li>
+  <li><strong> RSA CALCULATED USING THE FORMULA </strong></li>
+  <li><strong> HIGHEST OBSTRUCTION (IN FT) + 10% OF HIGHEST OBSTRUCTION + 1500</strong></li>
+</ul>
+
+` },
+      /* 5*/ {
+        id: 'P05', x: 66.76, y: 44.18, label: '5', title: 'Point 5', sub: '', content: `<ul style="font-family:Arial; font-size:25px; line-height:1.5;">
+
+  <li><strong>START UP WITH GARUDA TOWER ON FREQUENCY 127.9 MHz</strong></li>
+  <li><strong> OBSTRUCTION *COPY DETAILS FROM IMAGE</strong></li>
+  <li><strong> RSA CALCULATED USING THE FORMULA </strong></li>
+  <li><strong> HIGHEST OBSTRUCTION (IN FT) + 10% OF HIGHEST OBSTRUCTION + 1500</strong></li>
+</ul>
+
+` },
+      /* 6*/ {
+        id: 'P06', x: 66.76, y: 67.70, label: '6', title: 'Point 6', sub: '', content: `
+        <ul style="font-family:Arial; font-size:25px; line-height:1.5;">
+            <li><strong>TURNING POINT ACTIVITY (AORTC)</strong></li>
+                 <ul type="square" style="font-family:Arial; line-height:1;">
+                     <li>X- COAST CALL TO MOC (IST) ( MOC CALLSIGN ) DE ( OWN CALLSIGN ) (.) X-COAST AT ( TIME IN IST ) MNTNG STRATA(ALTITUDE IN THOUSANDS OF FT) (.) NEXT CALL (TIME OF GIVING CALL IN IST + 30 MINS) DE (OWN CALLSIGN) B/T (CURRENT TIME + 1MIN ) (.) </li>
+                 </ul>
+        </ul>
+        <ul style="font-family:Arial; font-size:25px; line-height:1.5;">
+            <li><strong>POSITION REPORT TO FIC</strong></li>
+                 <ul type="square" style="font-family:Arial; line-height:1;">
+                     <li>CH RADIO X 2 ( OWN CALLSIGN ) ON 8861/6655 POSITION (.) CHECKED OVERHEAD PT ‘Q’  ( TIME IN IST ) (.) NEXT CALL (TIME OF GIVING CALL IN IST + 30 MINS) ( OWN CALL SIGN )</li>
+                 </ul>
+        </ul>
+        
+        
+        `
+      },
+      /* 7*/ {
+        id: 'P07', x: 72.87, y: 67.66, label: '7', title: 'Point 7', sub: '', content: `
+        <ul style="font-family:Arial; font-size:25px; line-height:1.5; font-weight:bold">
+                     <li>OBSTRUCTION *COPY DETAILS FROM IMAGE</li>
+                     <li>RSA CALCULATED USING THE FORMULA </li>
+                     <li>HIGHEST OBSTRUCTION (IN FT) + 10% OF HIGHEST OBSTRUCTION + 1500</li>
+        </ul>`
+
+      },
+      /* 8*/ {
+        id: 'P08', x: 62.59, y: 71.41, label: '8', title: 'Point 8', sub: '', content: `<ul style="font-family:Arial; font-size:25px; line-height:1.5; font-weight:bold">
+                     <li>TAKE RDL DME FIX FROM TVM</li>
+                     <li>CALCULATE AP W/V </li>
+        </ul>
+
+` },
+      /* 9*/ {
+        id: 'P09', x: 56.30, y: 76.24, label: '9', title: 'Point 9', sub: '', content: ` <ul style="font-family:Arial; font-size:25px; line-height:1.5;">
+          <li><strong>ENTER EXERCISE AREA CALL TO FIC</strong></li>
+
+          <ul type="square" style="font-family:Arial; font-size:25px; line-height:1.5;">
+            <li>CHN RADIO X2 DE (OWN CALLSIGN) ON (8861/6655) (.) ENT EX AREA ( TIME IN UTC ) MNTNG (ALTIUDE IN FEET) FT AMSL (.) NEXT CALL (CALL TIME + 30 MINS)(.) DE (OWN CALLSIGN) (.) </li>
+
+        </ul>
+       </ul>
+
+` },
+      /*10*/ {
+        id: 'P10', x: 52.78, y: 78.71, label: '10', title: 'Point 10', sub: '', content: ` <ul style="font-family:Arial; font-size:25px; line-height:1.5;">
+          <li><strong>ON TASK REPORT TO MOC</strong></li>
+      
+          <ul type="square" style="font-family:Arial; font-size:25px; line-height:1.5;">
+            <li>(MOC CALL SIGN) DE ( OWN CALL SIGN )(.) REP ON TASK ( TIME IN IST ) (.) MNTNG STRATA (ALTITUDE IN THOUSANDS OF FT) NEXT CALL (CALL TIME + 30 MINS) DE (OWN CALLSIGN)(.) B/T (TIME OF CALL + 1 MIN )(.) </li>
+         </ul>
+
+          <li><strong>   AUTHENTICATION WITH ACS   </strong></li>
+          <ul type="square" style="font-family:Arial; font-size:25px; line-height:1.5;">
+            <li> (ACS CALLSIGN) DE (OWN CALLSIGN) REQUEST AUTHENTIACTION FOR (TIME IN IST)(.)  ACS PROVIDES AUTHENTICATION. AUTHENTICATION CORRECT/ INCORRECT(.) REPEAT PROCESS IF AUTHENTICATION INCORRECT. </li>
+         </ul>
+
+          <li><strong>   JOINING REPORT WITH ACS   </strong></li>
+          <ul type="square" style="font-family:Arial; font-size:25px; line-height:1.5;">
+            <li> (ACS CALL SIGN) DE (OWN CALL SIGN) S/BY COPY JOINING REPORT (ACS CALL SIGN) DE (OWN CALL SIGN) READ BACK ONE MARIGOLD C/S (OWN CALLSIGN) APPROACHING YOU FROM SECTOR (NEWS) BEELINE (HDG) INDICATING (LAST KNOWN G/S) STRATA (ALTITUDE IN THOUSANDS OF FT) I STICK (OFF TASK TIME – ON TASK TIME IN HRS AND MIN) MY CRYSTAL (HEALTHY IF RADAR IS WORKING / RUSTY IF RADAR NOT WORKING) GUESSER (BARKING IF IFF WORKING/ CHOCKED IF IFF NOT WORKING) P.O.B (PERSON ON BOARD) (OWN CALLSIGN) B/TIME (TIME OF CALL+ 1 MIN)  </li>
+         </ul>
+
+         <li><strong>   AUTHENTICATION WITH ACS   </strong></li>
+          <ul type="square" style="font-family:Arial; font-size:25px; line-height:1.5;">
+            <li> (ACS CALLSIGN) DE (OWN CALLSIGN) REQUEST AUTHENTIACTION FOR (TIME IN IST)(.)  ACS PROVIDES AUTHENTICATION. AUTHENTICATION CORRECT/ INCORRECT(.) REPEAT PROCESS IF AUTHENTICATION INCORRECT. </li>
+         </ul>
+
+         <li><strong>ACS REPEATS CALL</strong></li>
+         <li><strong>READ BACK CORRECT/INCORRECT</strong></li>
+         <li><strong>S/BY COPY JOINING INSTRUCTIONS</strong></li>
+
+       </ul>
+
+` },
+      /*11*/ {
+        id: 'P11', x: 46.76, y: 85.27, label: '11', title: 'Point 11', sub: '', content: ` <ul style="font-family:Arial; font-size:25px; line-height:1.5; ">
+         <li><strong> PASS WEATHER REPORT TO MOC </strong></li>
+              <ul type="square" style="font-family:Arial; font-size:25px; line-height:1.5; ">
+                     <li>(MOC CALLSIGN) DE (OWN CALLSIGN)(.) S/BY TO COPY WX IN EX AREA (.) CLOUDS (1-8) OCTA, WIND ( EG: N-NW 10 KN) SEA STATE ( ____ ) SWELL ( ____ )(.) DE (OWN CALLSIGN)(.) B/T (TIME OF CALL + 1 MIN(.)
+ </li>
+        </ul>
+
+` },
+      /*12*/ {
+        id: 'P12', x: 38.80, y: 93.32, label: '12', title: 'Point 12', sub: '', content: ` <ul style="font-family:Arial; font-size:25px; line-height:1.5; ">
+                     <li><strong>TURNING POINT ACTIVITY (MLAC)</strong></li>
+                     <li><strong>FUEL AND SAFETY CHECKS </strong></li>
+
+                     <li><strong>ADDITIONAL POINTS  </strong></li>
+                        <ul type="square" style="font-family:Arial; font-size:25px; line-height:1.5; ">
+                          <li><strong> OPS NORMAL CALL TO MOC </strong></li>
+                          <li> (MOC CALLSIGN) de (OWN CALLSIGN) REPORTING OPS NORMAL. MAINTATING STRATA ( ___ ) NEXT CALL ( TIME + 30 MINS ) DE ( OWN CALLSIGN ). B/T (CALL + 1 MIN) </li>
+                        </ul>
+
+                     <li><strong>OPS NORMAL TO FIC </strong></li>
+                        <ul type="square" style="font-family:Arial; font-size:25px; line-height:1.5; ">
+                          <li> CH RADIO (OWN CALLSIGN) ON 8861/6655(.) REPORTING OPS NORMAL IN EX AREA. MAINTAINING (ALTITUDE IN FEET) AMSL(.) NEXT CALL (CALL TIME + 30 MINS) (.) (OWN CALLSIGN) (.)</li>
+                        </ul>
+         </ul>
+
+` },
+      /*13*/ {
+        id: 'P13', x: 29.35, y: 66.58, label: '13', title: 'Point 13', sub: '', content: ` <ul style="font-family:Arial; font-size:25px; line-height:1.5; ">
+                     <li><strong><u>INCREASE SPEED TO 165</u></strong></li>
+                     <li><strong><u>OFF TASK REPORT TO MOC AND ACS</u></strong></li>
+                     <li>(MOC/ACS CALLSIGN) DE (OWN CALLSIGN)(.) PROCEEDING OFF TASK AT
+(TIME IN IST)(.) MNTNG STRATA (ALTITUDE IN 1000’S OF FT)(·)ETA BASE (TIME IN IST)(.) DE (OWN CALLSIGN)() B/T (TIME + 1MIN)()
+</li>
+        </ul>
+
+` },
+      /*14*/ {
+        id: 'P14', x: 35.19, y: 63.13, label: '14', title: 'Point 14', sub: '', content: ` <ul style="font-family:Arial; font-size:25px; line-height:1.5; font-weight:bold">
+                     <li>COMMENCE PRE- DESCENT ACTIVITY</li>
+        </ul>
+
+` },
+      /*15*/ {
+        id: 'P15', x: 48.15, y: 52.10, label: '15', title: 'Point 15', sub: '', content: ` <ul style="font-family:Arial; font-size:25px; line-height:1.5;">
+                     <li><strong>EXIT EX AREA CALL TO FIC </strong></li>
+                        <ul type="square" style="font-family:Arial; font-size:25px; line-height:1.5; ">
+                          <li> CHN RADIO X2 DE (OWN CALLSIGN) ON (8861/6655) (.) ENT EX AREA ( TIME IN UTC ) MNTNG (ALTIUDE IN FEET) FT AMSL (.) ARRIVAL KOCHI GARUDA ( TIME IN UTC )(.) DE (OWN CALLSIGN) (.) </li>
+                        </ul>
+        </ul>
+
+` },
+      /*16*/ {
+        id: 'P16', x: 55.74, y: 46.53, label: '16', title: 'Point 16', sub: '', content: ` <ul style="font-family:Arial; font-size:25px; line-height:1.5; font-weight:bold">
+                     <li>TOD ACTIVITY</li>
+        </ul>
+
+` },
+      /*17*/ {
+        id: 'P17', x: 60.83, y: 42.82, label: '17', title: 'Point 17', sub: '', content: ` <ul style="font-family:Arial; font-size:25px; line-height:1.5; font-weight:bold">
+                     <li>APPROACH HOLDING FIX</li>
+                     <li>CONTACT GARUDA APPROACH ON 124.7 MHz AND TAKE PERMISSION TO CARRY OUT IAP. </li>
+                     <li>LANDING AND TAXY ON GARUDA TOWER 127.9 MHz.</li>
+        </ul>
+
+` },
+      //   /*18*/ {id:'P18', x:60.93, y:33.54, label:'18', title:'Point 18', sub:'', content:'Details for point 18.'}
+    ];
+
+    const overlay = document.getElementById('overlay');
+    const backdrop = document.getElementById('backdrop');
+    const popup = document.getElementById('popup');
+    const popupClose = document.getElementById('popupClose');
+    const popupTitle = document.getElementById('popupTitle');
+    const popupSub = document.getElementById('popupSub');
+    const popupBody = document.getElementById('popupBody');
+
+    // Build markers
+    points.forEach(pt => {
+      const m = document.createElement('button');
+      m.className = 'marker';
+      m.type = 'button';
+      m.setAttribute('aria-label', pt.title || pt.id);
+      m.setAttribute('title', pt.title || pt.id);
+      m.setAttribute('tabindex', '0');
+
+      // set position using percentages
+      m.style.left = pt.x + '%';
+      m.style.top = pt.y + '%';
+
+      // small label inside marker
+      m.innerHTML = '<span>' + pt.label + '</span>';
+
+      // accessible keyboard activation
+      m.addEventListener('click', () => showPopup(pt));
+      m.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showPopup(pt); } });
+
+      overlay.appendChild(m);
+    });
+
+    function showPopup(point) {
+      popupTitle.textContent = point.title || point.id;
+      popupSub.textContent = (point.sub || '') + ` — Coords: ${point.x.toFixed(2)}%, ${point.y.toFixed(2)}%`;
+      popupBody.innerHTML = `<div class="big">${point.content || 'No details provided.'}</div>`;
+
+      backdrop.classList.add('show');
+      // force reflow then add show for smooth scale transition
+      requestAnimationFrame(() => popup.classList.add('show'));
+      backdrop.setAttribute('aria-hidden', 'false');
+
+      // trap focus inside popup for accessibility
+      setTimeout(() => popupClose.focus(), 300);
+    }
+
+    function closePopup() {
+      popup.classList.remove('show');
+      backdrop.classList.remove('show');
+      backdrop.setAttribute('aria-hidden', 'true');
+    }
+
+    popupClose.addEventListener('click', closePopup);
+
+    // clicking backdrop outside popup closes it
+    backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closePopup(); });
+
+    // ESC key to close
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && backdrop.classList.contains('show')) closePopup(); });
+
+    // === Developer Signature ===
+    console.log("%c🚀 CBT System © 2025 | Designed & Developed by Aditya Choudhary", "color: red; font-weight: bold; font-size: 14px;");
+    console.log("%c🔗 GitHub: https://github.com/adiityachoudhary", "color: gray; font-size: 12px;");
+  </script>
 </body>
+
 </html>

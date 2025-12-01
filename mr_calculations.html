@@ -1,0 +1,392 @@
+<!--
+File: patrol-search-parameters-interactive.html
+Description: Responsive, polished single-file webpage. Cards show title only and open dialog with topic details + audio (src/1.m4a ... src/21.m4a).
+Author: Aditya Choudhary
+Github: https://github.com/adiityachoudhary
+Created: 01-Dec-2025
+Last Modified: 01-Dec-2025
+Dependencies: Tailwind via CDN
+-->
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>MR Calculations</title>
+    <meta name="description"
+        content="Interactive reference for patrol/search planning. Click a topic to view details and play audio." />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --glass: rgba(255, 255, 255, 0.04);
+        }
+
+        body {
+            background: radial-gradient(1200px 600px at 10% 10%, rgba(14, 165, 233, 0.07), transparent 6%),
+                linear-gradient(180deg, #041023 0%, #00131a 100%);
+        }
+
+        button:hover{
+            background-color: rgba(194, 202, 255, 0.223);            
+        }
+
+        .card {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .mono {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', monospace;
+        }
+
+        .accent {
+            color: #7dd3fc;
+        }
+
+        .glow {
+            box-shadow: 0 8px 30px rgba(2, 6, 23, 0.6);
+        }
+
+        .fade-in {
+            animation: fadeIn .45s ease both;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        /* Modal backdrop transitions */
+        .modal-backdrop {
+            transition: opacity .18s ease;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen text-slate-100 antialiased">
+    <header class="max-w-7xl mx-auto p-6 md:p-10 flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl md:text-4xl font-bold">MR CALCULATIONS</h1>
+            <p class="text-slate-300 mt-1">BY SAURAV SIR</p>
+        </div>
+        <img src="src/favicon.png" alt="" width="100" />
+    </header>
+
+    <main class="max-w-7xl mx-auto gap-6 p-6">
+        <!-- Right: detailed cards area converted to full width -->
+        <section class="space-y-6">
+            <div class="grid gap-6 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3">
+                <!-- Cards: Title only, clickable. Each preserves original title string exactly. -->
+                <!-- Card 1 -->
+                <button data-index="1"
+                    class="card p-6 rounded-2xl fade-in text-left transform transition hover:-translate-y-1 hover:scale-[1.01] hover:shadow-2xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-400">
+                    <h3 class="text-2xl font-semibold">1. ENEMY MLA (MEAN LINE OF APPROACH)</h3>
+                </button>
+
+                <!-- Card 2 -->
+                <button data-index="2"
+                    class="card p-6 rounded-2xl fade-in text-left transform transition hover:-translate-y-1 hover:scale-[1.01] hover:shadow-2xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-400">
+                    <h3 class="text-2xl font-semibold">2. MDR (MAXIMUM DETECTION RANGE)</h3>
+                </button>
+
+                <!-- Card 3 -->
+                <button data-index="3"
+                    class="card p-6 rounded-2xl fade-in text-left transform transition hover:-translate-y-1 hover:scale-[1.01] hover:shadow-2xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-400">
+                    <h3 class="text-2xl font-semibold">3. SWEEP WIDTH (W)</h3>
+                </button>
+
+                <!-- Card 4 -->
+                <button data-index="4"
+                    class="card p-6 rounded-2xl fade-in text-left transform transition hover:-translate-y-1 hover:scale-[1.01] hover:shadow-2xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-400">
+                    <h3 class="text-2xl font-semibold">4. COVERAGE FACTOR (CF)</h3>
+                </button>
+
+                <!-- Card 5 -->
+                <button data-index="5"
+                    class="card p-6 rounded-2xl fade-in text-left transform transition hover:-translate-y-1 hover:scale-[1.01] hover:shadow-2xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-400">
+                    <h3 class="text-2xl font-semibold">5. TRACK SPACING (S)</h3>
+                </button>
+
+                <!-- Card 6 -->
+                <button data-index="6"
+                    class="card p-6 rounded-2xl fade-in text-left transform transition hover:-translate-y-1 hover:scale-[1.01] hover:shadow-2xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-400">
+                    <h3 class="text-2xl font-semibold">6. PATROL SPEED (V)</h3>
+                </button>
+
+                <!-- Card 7 -->
+                <button data-index="7"
+                    class="card p-6 rounded-2xl fade-in text-left transform transition hover:-translate-y-1 hover:scale-[1.01] hover:shadow-2xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-400">
+                    <h3 class="text-2xl font-semibold">7. INVESTIGATION TIME (IT)</h3>
+                </button>
+
+                <!-- Card 8 -->
+                <button data-index="8"
+                    class="card p-6 rounded-2xl fade-in text-left transform transition hover:-translate-y-1 hover:scale-[1.01] hover:shadow-2xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-400">
+                    <h3 class="text-2xl font-semibold">8. REDUCED VELOCITY (RV)</h3>
+                </button>
+
+                <!-- Card 9 -->
+                <button data-index="9"
+                    class="card p-6 rounded-2xl fade-in text-left transform transition hover:-translate-y-1 hover:scale-[1.01] hover:shadow-2xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-400">
+                    <h3 class="text-2xl font-semibold">9. FRONTAGE (F)</h3>
+                </button>
+
+                <!-- Card 10 -->
+                <button data-index="10"
+                    class="card p-6 rounded-2xl fade-in text-left transform transition hover:-translate-y-1 hover:scale-[1.01] hover:shadow-2xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-400">
+                    <h3 class="text-2xl font-semibold">10. REDUCED FRONTAGE (y)</h3>
+                </button>
+
+                <!-- Card 11 -->
+                <button data-index="11"
+                    class="card p-6 rounded-2xl fade-in text-left transform transition hover:-translate-y-1 hover:scale-[1.01] hover:shadow-2xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-400">
+                    <h3 class="text-2xl font-semibold">11. LEAD ANGLE (α)</h3>
+                </button>
+
+                <!-- Card 12 -->
+                <button data-index="12"
+                    class="card p-6 rounded-2xl fade-in text-left transform transition hover:-translate-y-1 hover:scale-[1.01] hover:shadow-2xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-400">
+                    <h3 class="text-2xl font-semibold">12. LENGTH OF LONG LEG (L)</h3>
+                </button>
+
+                <!-- Card 13 -->
+                <button data-index="13"
+                    class="card p-6 rounded-2xl fade-in text-left transform transition hover:-translate-y-1 hover:scale-[1.01] hover:shadow-2xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-400">
+                    <h3 class="text-2xl font-semibold">13. TIME ON LONG LEG</h3>
+                </button>
+
+                <!-- Card 14 -->
+                <button data-index="14"
+                    class="card p-6 rounded-2xl fade-in text-left transform transition hover:-translate-y-1 hover:scale-[1.01] hover:shadow-2xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-400">
+                    <h3 class="text-2xl font-semibold">14. LENGTH OF SHORT LEG (M)</h3>
+                </button>
+
+                <!-- Card 15 -->
+                <button data-index="15"
+                    class="card p-6 rounded-2xl fade-in text-left transform transition hover:-translate-y-1 hover:scale-[1.01] hover:shadow-2xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-400">
+                    <h3 class="text-2xl font-semibold">15. TIME ON SHORT LEG</h3>
+                </button>
+
+                <!-- Card 16 -->
+                <button data-index="16"
+                    class="card p-6 rounded-2xl fade-in text-left transform transition hover:-translate-y-1 hover:scale-[1.01] hover:shadow-2xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-400">
+                    <h3 class="text-2xl font-semibold">16. TIME OF ONE ELEMENT (TS)</h3>
+                </button>
+
+                <!-- Card 17 -->
+                <button data-index="17"
+                    class="card p-6 rounded-2xl fade-in text-left transform transition hover:-translate-y-1 hover:scale-[1.01] hover:shadow-2xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-400">
+                    <h3 class="text-2xl font-semibold">17. TRANSIT TIME</h3>
+                </button>
+
+                <!-- Card 18 -->
+                <button data-index="18"
+                    class="card p-6 rounded-2xl fade-in text-left transform transition hover:-translate-y-1 hover:scale-[1.01] hover:shadow-2xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-400">
+                    <h3 class="text-2xl font-semibold">18. PLE (PRUDENT LIMIT OF ENDURANCE)</h3>
+                </button>
+
+                <!-- Card 19 -->
+                <button data-index="19"
+                    class="card p-6 rounded-2xl fade-in text-left transform transition hover:-translate-y-1 hover:scale-[1.01] hover:shadow-2xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-400">
+                    <h3 class="text-2xl font-semibold">19. TIME ON TASK</h3>
+                </button>
+
+                <!-- Card 20 -->
+                <button data-index="20"
+                    class="card p-6 rounded-2xl fade-in text-left transform transition hover:-translate-y-1 hover:scale-[1.01] hover:shadow-2xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-400">
+                    <h3 class="text-2xl font-semibold">20. NUMBER OF ELEMENTS (E)</h3>
+                </button>
+
+                <!-- Card 21 -->
+                <button data-index="21"
+                    class="card p-6 rounded-2xl fade-in text-left transform transition hover:-translate-y-1 hover:scale-[1.01] hover:shadow-2xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-400">
+                    <h3 class="text-2xl font-semibold">21. START POINT</h3>
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <footer class="max-w-7xl mx-auto p-6 text-center text-slate-400 text-sm">
+        © 2025 CBT System | Designed & Developed by
+        <a href="https://github.com/adiityachoudhary" target="_blank"
+            class="text-indigo-600 font-semibold hover:underline">
+            Tars
+        </a>
+    </footer>
+
+    <!-- Modal (hidden until a card is clicked) -->
+    <div id="modal" class="fixed inset-0 z-50 hidden items-center justify-center">
+        <div id="backdrop" class="absolute inset-0 bg-black/70 modal-backdrop"></div>
+        <div
+            class="relative z-10 max-w-3xl w-[95%] md:w-3/4 lg:w-2/3 p-6 bg-gradient-to-b from-slate-900/90 to-slate-900/80 border border-white/6 rounded-2xl shadow-2xl">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <h2 id="modalTitle" class="text-2xl font-bold"></h2>
+                    <div id="modalBody" class="mt-4 space-y-3 text-slate-200"></div>
+                </div>
+                <div class="flex flex-col items-end gap-2">
+                    <button id="closeBtn"
+                        class="text-slate-300 hover:text-white bg-white/3 px-3 py-2 rounded-md">Close</button>
+                    <div class="text-xs text-slate-400">Audio</div>
+                    <audio id="modalAudio" controls controlsList="nodownload" class="mt-1 w-44" src=""></audio>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Topic details (verbatim from original). Keep every detail exactly.
+        const TOPICS = {
+            1: {
+                title: "1. ENEMY MLA (MEAN LINE OF APPROACH)",
+                body: `<p>ENEMY MLA IS CALCULATED BASED ON THE MAXIMUM AND MINIMUM SPEEDS OF THE ENEMY AND THE COURSE AND APPROACH OF THE ENEMY.</p>`
+            },
+            2: {
+                title: "2. MDR (MAXIMUM DETECTION RANGE)",
+                body: `<p>IT IS THE MAXIMUM DETECTION RANGE OF AN AIRCRAFT. IT IS AIRCRAFT-SPECIFIC AND TAKEN FROM TACSUM OF THAT PARTICULAR AIRCRAFT.</p>`
+            },
+            3: {
+                title: "3. SWEEP WIDTH (W)",
+                body: `<p>IT IS A MEASURE OF DETECTION CAPABILITY IN WHICH MAXIMUM DETECTION OF ANY SWEEP IS ARBITRARILY REDUCED IN SUCH A WAY THAT SCATTERED TARGETS WHICH MAY BE DETECTED BEYOND THESE LIMITS ARE EQUAL IN NUMBER TO THOSE WHICH MAY BE MISSED IN THE SAME LIMITS.</p>
+               <div class="mono text-sm text-slate-200 mt-2">SWEEP WIDTH (W) = 2 × 0.7 × MDR</div>`
+            },
+            4: {
+                title: "4. COVERAGE FACTOR (CF)",
+                body: `<p>INDICATES THE EXTENT TO WHICH A GIVEN AREA HAS BEEN SCANNED AND IS A MEASUREMENT OF THOROUGHNESS OF A SEARCH OR PATROL.</p>
+               <div class="mono text-sm text-slate-200 mt-2">CF = SWEEP WIDTH / TRACK SPACING = W / S</div>`
+            },
+            5: {
+                title: "5. TRACK SPACING (S)",
+                body: `<p>THE DISTANCE BETWEEN ADJACENT SCOUTING TRACKS.</p>
+               <div class="mono text-sm text-slate-200 mt-2">TRACK SPACING (S) = SWEEP WIDTH (W) / COVERAGE FACTOR (CF) = W / CF</div>`
+            },
+            6: {
+                title: "6. PATROL SPEED (V)",
+                body: `<p>SPEED AT WHICH AIRCRAFT CARRIES OUT SEARCH IN THE AREA. AIRCRAFT-SPECIFIC AND TAKEN FROM TACSUM.</p>
+               <div class="mono text-sm text-slate-200 mt-2">Example: V = 165 (TAS)</div>`
+            },
+            7: {
+                title: "7. INVESTIGATION TIME (IT)",
+                body: `<p>TIME SPENT BY THE SCOUT IN THE AREA FOR INVESTIGATING THE CONTACT. IT GENERALLY RANGES FROM 15–20% AND CAN GO UP TO A MAXIMUM OF 75%.</p>`
+            },
+            8: {
+                title: "8. REDUCED VELOCITY (RV)",
+                body: `<p>SPEED OF THE AIRCRAFT ADJUSTED TO CATER FOR EXTRA INVESTIGATION TIME.</p>
+               <div class="mono text-sm text-slate-200 mt-2">RV = V × (100 − IT) / 100</div>`
+            },
+            9: {
+                title: "9. FRONTAGE (F)",
+                body: `<p>LENGTH OF THE EXERCISE AREA.</p>`
+            },
+            10: {
+                title: "10. REDUCED FRONTAGE (y)",
+                body: `<p>FRONTAGE REDUCED TO CATER FOR SWEEP WIDTH.</p>
+               <div class="mono text-sm text-slate-200 mt-2">y = F − 2W / 3</div>`
+            },
+            11: {
+                title: "11. LEAD ANGLE (α)",
+                body: `<p>CALCULATED TO CATER FOR THE PRESENCE OF ENEMY ON THE EXTREMITIES OF THE EXERCISE AREA.</p>
+               <div class="mono text-sm text-slate-200 mt-2">α = sin⁻¹(u / RV),&nbsp; where u = ENEMY SPEED</div>`
+            },
+            12: {
+                title: "12. LENGTH OF LONG LEG (L)",
+                body: `<p>LENGTH OF THE LONG LEG OF THE SEARCH PATTERN.</p>
+               <div class="mono text-sm text-slate-200 mt-2">L = RV × y / √(RV² − u²)</div>`
+            },
+            13: {
+                title: "13. TIME ON LONG LEG",
+                body: `<p>TIME TAKEN TO COVER THE LONG LEG.</p>
+               <div class="mono text-sm text-slate-200 mt-2">Time on Long Leg = y / √(RV² − u²)</div>`
+            },
+            14: {
+                title: "14. LENGTH OF SHORT LEG (M)",
+                body: `<p>LENGTH OF THE SHORT LEG OF THE SEARCH PATTERN.</p>
+               <div class="mono text-sm text-slate-200 mt-2">M = S × RV / (RV + u)</div>`
+            },
+            15: {
+                title: "15. TIME ON SHORT LEG",
+                body: `<p>TIME TAKEN TO COVER THE SHORT LEG.</p>
+               <div class="mono text-sm text-slate-200 mt-2">Time on Short Leg = S / (RV + u)</div>`
+            },
+            16: {
+                title: "16. TIME OF ONE ELEMENT (TS)",
+                body: `<p>TIME TAKEN BY ONE ELEMENT IN THE EXERCISE AREA.</p>
+               <div class="mono text-sm text-slate-200 mt-2">TS = 2 × (L + M) / RV</div>`
+            },
+            17: {
+                title: "17. TRANSIT TIME",
+                body: `<p>TIME TAKEN IN TRANSITING FROM BASE TO THE START POINT OF SEARCH AND FROM THE END POINT OF SEARCH BACK TO BASE.</p>`
+            },
+            18: {
+                title: "18. PLE (PRUDENT LIMIT OF ENDURANCE)",
+                body: `<p>TOTAL TIME</p>`
+            },
+            19: {
+                title: "19. TIME ON TASK",
+                body: `<p>TIME SPENT IN THE EXERCISE AREA FROM START POINT TO END POINT.</p>
+               <div class="mono text-sm text-slate-200 mt-2">Time on Task = PLE − Transit Time</div>`
+            },
+            20: {
+                title: "20. NUMBER OF ELEMENTS (E)",
+                body: `<p>NUMBER OF OWN ELEMENTS (AIRCRAFT/ELEMENTS) IN THE AREA.</p>
+               <div class="mono text-sm text-slate-200 mt-2">E = TOT / TS &nbsp; (TOT = Total Time on Task)</div>`
+            },
+            21: {
+                title: "21. START POINT",
+                body: `<p>START POINT OF THE SEARCH PATTERN ALONG THE FRONTAGE.</p>
+               <div class="mono text-sm text-slate-200 mt-2">Start Point = W / 3</div>`
+            }
+        };
+
+        // Elements
+        const modal = document.getElementById('modal');
+        const backdrop = document.getElementById('backdrop');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalBody = document.getElementById('modalBody');
+        const modalAudio = document.getElementById('modalAudio');
+        const closeBtn = document.getElementById('closeBtn');
+
+        // Attach click listeners to cards
+        document.querySelectorAll('[data-index]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const idx = btn.getAttribute('data-index');
+                const topic = TOPICS[idx];
+                if (!topic) return;
+                modalTitle.innerText = topic.title;
+                modalBody.innerHTML = topic.body;
+                // use src/<n>.m4a as requested
+                modalAudio.src = `src/${idx}.m4a`;
+                modalAudio.load();
+                // show modal
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            });
+        });
+
+        // Close handlers
+        function closeModal() {
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+            modalAudio.pause();
+            modalAudio.currentTime = 0;
+        }
+        closeBtn.addEventListener('click', closeModal);
+        backdrop.addEventListener('click', closeModal);
+
+        // ESC to close
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
+        });
+    </script>
+</body>
+
+</html>
